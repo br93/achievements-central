@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+
+  broker-service:
+    build:
+      context: ./../broker-service
+      dockerfile: ./../broker-service/broker-service.Dockerfile
+    container_name: achievements-central-broker
+    restart: always
+    ports:
+      - "8081:8080"
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - achievements-central-network
+
+networks:
+  achievements-central-network:
+    external: true
