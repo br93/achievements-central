@@ -20,7 +20,8 @@ export class Hltb{
         }).then(response => response.json()). then(json => {
             return JSON.stringify(json, null, 4)});
 
-        return JSON.parse(await __jolt(response, jsonConfig.spec, false));
+        const spec = await jsonConfig.spec();
+        return JSON.parse(await __jolt(response, spec, false));
     }
     
 }
