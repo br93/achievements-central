@@ -1,10 +1,10 @@
 import { jsonConfig } from "./json-config"
+import { __jolt } from "jolt-demo"
 
 export class Hltb{
 
     private url
     private searchURI
-
 
     constructor(){
         this.url = "https://howlongtobeat.com"
@@ -20,7 +20,7 @@ export class Hltb{
         }).then(response => response.json()). then(json => {
             return JSON.stringify(json, null, 4)});
 
-        return response
+        return JSON.parse(await __jolt(response, jsonConfig.spec, false));
     }
     
 }
