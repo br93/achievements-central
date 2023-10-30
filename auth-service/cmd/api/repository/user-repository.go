@@ -54,7 +54,7 @@ func GetAllUsers() ([]*User, error) {
 	defer cancel()
 
 	query := `select * from tb_users 
-		were activated_at is not null`
+		where activated_at is not null`
 
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
@@ -188,7 +188,7 @@ func DeleteUserById(userId string) error {
 	return nil
 }
 
-func ActivatedUserById(userId string) error {
+func ActivateUserById(userId string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
