@@ -173,11 +173,12 @@ func DeleteUserById(userId string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	query := `update tb_users set activated_at = $1, deleted_at = $2,
+	query := `update tb_users set activated_at = $1, deleted_at = $2, updated_at = $3,
 		where user_id = $3 and activated_at is not null`
 
 	_, err := db.ExecContext(ctx, query,
 		nil,
+		time.Now(),
 		time.Now(),
 		userId)
 
@@ -192,10 +193,11 @@ func ActivateUserById(userId string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	query := `update tb_users set activated_at = $1,
+	query := `update tb_users set activated_at = $1, updated_at = $2,
 		where user_id = $2 and activated_at is not null`
 
 	_, err := db.ExecContext(ctx, query,
+		time.Now(),
 		time.Now(),
 		userId)
 
