@@ -7,7 +7,17 @@ import (
 )
 
 func responseJSON(w http.ResponseWriter, code int, payload interface{}) {
-	data, err := json.Marshal(payload)
+
+	type response struct {
+		Success string      `json:"success"`
+		Data    interface{} `json:"data"`
+	}
+
+	data, err := json.Marshal(response{
+		Success: "true",
+		Data:    payload,
+	})
+
 	if err != nil {
 		log.Printf("Marshal failed: %v", err)
 		w.WriteHeader(500)
