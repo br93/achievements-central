@@ -1,6 +1,7 @@
 package main
 
 import (
+	"auth-service/cmd/api/data"
 	"auth-service/internal/database"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,8 @@ import (
 )
 
 func (app *Config) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
+
+	validation := &data.Validation{}
 
 	type Parameters struct {
 		Email    string `json:"email"`
@@ -20,6 +23,12 @@ func (app *Config) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		errorJSON(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		return
+	}
+
+	err = validation.ValidateEmail(params.Email)
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Email invalid: %v", err))
 		return
 	}
 
