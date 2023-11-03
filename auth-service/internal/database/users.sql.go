@@ -7,6 +7,8 @@ package database
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -22,6 +24,130 @@ type CreateUserParams struct {
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (TbUser, error) {
 	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.Password)
+	var i TbUser
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Password,
+		&i.IsActive,
+		&i.IsSuperuser,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const deleteUser = `-- name: DeleteUser :exec
+DELETE from tb_users 
+WHERE id = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	return err
+}
+
+const getAllActiveUsers = `-- name: GetAllActiveUsers :many
+SELECT id, email, password, is_active, is_superuser, created_at, updated_at, deleted_at FROM tb_users WHERE is_active = true AND deleted_at IS NULL
+`
+
+func (q *Queries) GetAllActiveUsers(ctx context.Context) ([]TbUser, error) {
+	rows, err := q.db.QueryContext(ctx, getAllActiveUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TbUser
+	for rows.Next() {
+		var i TbUser
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.Password,
+			&i.IsActive,
+			&i.IsSuperuser,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllUsers = `-- name: GetAllUsers :many
+SELECT id, email, password, is_active, is_superuser, created_at, updated_at, deleted_at FROM tb_users WHERE deleted_at IS NULL
+`
+
+func (q *Queries) GetAllUsers(ctx context.Context) ([]TbUser, error) {
+	rows, err := q.db.QueryContext(ctx, getAllUsers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TbUser
+	for rows.Next() {
+		var i TbUser
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.Password,
+			&i.IsActive,
+			&i.IsSuperuser,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, email, password, is_active, is_superuser, created_at, updated_at, deleted_at FROM tb_users 
+WHERE email = $1 AND deleted_at IS NULL
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (TbUser, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i TbUser
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Password,
+		&i.IsActive,
+		&i.IsSuperuser,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const getUserById = `-- name: GetUserById :one
+SELECT id, email, password, is_active, is_superuser, created_at, updated_at, deleted_at FROM tb_users 
+WHERE id = $1 AND deleted_at IS NULL
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (TbUser, error) {
+	row := q.db.QueryRowContext(ctx, getUserById, id)
 	var i TbUser
 	err := row.Scan(
 		&i.ID,

@@ -31,6 +31,16 @@ func (*Models) ToUser(tbUser database.TbUser) User {
 	}
 }
 
+func (model *Models) ToUsers(tbUsers []database.TbUser) []User {
+	var users []User
+
+	for _, data := range tbUsers {
+		users = append(users, model.ToUser(data))
+	}
+
+	return users
+}
+
 func (*password) Set(password string) (string, error) {
 	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
 	if err != nil {

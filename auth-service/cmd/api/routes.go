@@ -26,7 +26,14 @@ func (app *Config) routes() http.Handler {
 
 func (app *Config) v1Routes(router *chi.Mux) {
 	router.Get("/health", app.handlerHealth)
+
 	router.Post("/users", app.handlerCreateUser)
+	router.Get("/users", app.handlerGetAllUsers)
+
+	router.Get("/users/{id}", app.handlerGetUserById)
+	router.Delete("/users/{id}", app.handlerDeleteUser)
+
+	router.Get("/users/active", app.handlerGetAllActiveUsers)
 
 	router.Mount("/api/v1", router)
 }
