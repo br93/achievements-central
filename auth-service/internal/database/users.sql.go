@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -160,4 +161,64 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (TbUser, error)
 		&i.DeletedAt,
 	)
 	return i, err
+}
+
+const updateActive = `-- name: UpdateActive :exec
+UPDATE tb_users SET is_active = $1
+WHERE id = $2
+`
+
+type UpdateActiveParams struct {
+	IsActive sql.NullBool
+	ID       uuid.UUID
+}
+
+func (q *Queries) UpdateActive(ctx context.Context, arg UpdateActiveParams) error {
+	_, err := q.db.ExecContext(ctx, updateActive, arg.IsActive, arg.ID)
+	return err
+}
+
+const updateEmail = `-- name: UpdateEmail :exec
+UPDATE tb_users SET email = $1
+WHERE id = $2
+`
+
+type UpdateEmailParams struct {
+	Email string
+	ID    uuid.UUID
+}
+
+func (q *Queries) UpdateEmail(ctx context.Context, arg UpdateEmailParams) error {
+	_, err := q.db.ExecContext(ctx, updateEmail, arg.Email, arg.ID)
+	return err
+}
+
+const updatePassword = `-- name: UpdatePassword :exec
+UPDATE tb_users SET password = $1
+WHERE id = $2
+`
+
+type UpdatePasswordParams struct {
+	Password string
+	ID       uuid.UUID
+}
+
+func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) error {
+	_, err := q.db.ExecContext(ctx, updatePassword, arg.Password, arg.ID)
+	return err
+}
+
+const updateSuperUser = `-- name: UpdateSuperUser :exec
+UPDATE tb_users SET is_superuser = $1
+WHERE id = $2
+`
+
+type UpdateSuperUserParams struct {
+	IsSuperuser sql.NullBool
+	ID          uuid.UUID
+}
+
+func (q *Queries) UpdateSuperUser(ctx context.Context, arg UpdateSuperUserParams) error {
+	_, err := q.db.ExecContext(ctx, updateSuperUser, arg.IsSuperuser, arg.ID)
+	return err
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"auth-service/cmd/api/data"
 	"auth-service/internal/database"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -147,6 +148,171 @@ func (app *Config) handlerDeleteUser(w http.ResponseWriter, r *http.Request) {
 	err = app.DB.DeleteUser(r.Context(), uuid)
 	if err != nil {
 		errorJSON(w, 400, fmt.Sprintf("Error deleting user: %v", err))
+		return
+	}
+
+	responseJSON(w, 204, NoContent{})
+}
+
+func (app *Config) handlerUpdateEmail(w http.ResponseWriter, r *http.Request) {
+
+	type Body struct {
+		NewEmail string `json:"new_email"`
+		Password string `json:"password"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	body := Body{}
+	err := decoder.Decode(&body)
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		return
+	}
+
+	paths, err := app.paramParser(w, r)
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		return
+	}
+
+	uuid, err := uuid.Parse(paths[len(paths)-2])
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		return
+	}
+
+	user, err := app.DB.GetUserById(r.Context(), uuid)
+
+	match, _ := app.Models.User.Password.Matches(body.Password, user.Password)
+	if !match {
+		errorJSON(w, 400, fmt.Sprintf("Email or password invalid"))
+		return
+	}
+
+	err = app.DB.UpdateEmail(r.Context(), database.UpdateEmailParams{
+		Email: body.NewEmail,
+		ID:    uuid,
+	})
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error updating user: %v", err))
+		return
+	}
+
+	responseJSON(w, 204, NoContent{})
+}
+
+func (app *Config) handlerUpdatePassword(w http.ResponseWriter, r *http.Request) {
+
+	type Body struct {
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	body := Body{}
+	err := decoder.Decode(&body)
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		return
+	}
+
+	paths, err := app.paramParser(w, r)
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		return
+	}
+
+	uuid, err := uuid.Parse(paths[len(paths)-2])
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		return
+	}
+
+	user, err := app.DB.GetUserById(r.Context(), uuid)
+
+	match, _ := app.Models.User.Password.Matches(body.OldPassword, user.Password)
+	if !match {
+		errorJSON(w, 400, fmt.Sprintf("Email or password invalid"))
+		return
+	}
+
+	password, err := app.Models.User.Password.Set(body.NewPassword)
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Email or password invalid"))
+		return
+	}
+
+	err = app.DB.UpdatePassword(r.Context(), database.UpdatePasswordParams{
+		Password: password,
+		ID:       uuid,
+	})
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error updating user: %v", err))
+		return
+	}
+
+	responseJSON(w, 204, NoContent{})
+}
+
+func (app *Config) handlerUpdateSuperUser(w http.ResponseWriter, r *http.Request) {
+	paths, err := app.paramParser(w, r)
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		return
+	}
+
+	uuid, err := uuid.Parse(paths[len(paths)-2])
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		return
+	}
+
+	err = app.DB.UpdateSuperUser(r.Context(), database.UpdateSuperUserParams{
+		IsSuperuser: sql.NullBool{Bool: true, Valid: true},
+		ID:          uuid,
+	})
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error updating user: %v", err))
+		return
+	}
+
+	responseJSON(w, 204, NoContent{})
+}
+
+func (app *Config) handlerUpdateActive(w http.ResponseWriter, r *http.Request) {
+	paths, err := app.paramParser(w, r)
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		return
+	}
+
+	uuid, err := uuid.Parse(paths[len(paths)-2])
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		return
+	}
+
+	err = app.DB.UpdateActive(r.Context(), database.UpdateActiveParams{
+		IsActive: sql.NullBool{Bool: true, Valid: true},
+		ID:       uuid,
+	})
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf("Error updating user: %v", err))
 		return
 	}
 
