@@ -4,17 +4,20 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"reflect"
 )
 
 func responseJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 	type response struct {
-		Success string      `json:"success"`
+		Success bool        `json:"success"`
 		Data    interface{} `json:"data"`
 	}
 
+	responseType := reflect.TypeOf(payload)
+
 	data, err := json.Marshal(response{
-		Success: "true",
+		Success: responseType.Name() != "error",
 		Data:    payload,
 	})
 
@@ -35,12 +38,12 @@ func errorJSON(w http.ResponseWriter, code int, message string) {
 	}
 
 	type error struct {
-		Success string `json:"success"`
-		Error   string `json:"error"`
+		Status int    `json:"status"`
+		Error  string `json:"error"`
 	}
 
 	responseJSON(w, code, error{
-		Success: "false",
-		Error:   message,
+		Status: code,
+		Error:  message,
 	})
 }
