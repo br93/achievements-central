@@ -1,2 +1,12 @@
+### HEALTH CHECK
 GET http://localhost:8000/api/v1/health
 content-type: application/json
+
+### CREATE USER
+POST http://localhost:8000/api/v1/users
+content-type: application/json
+
+{
+    "email": "admin@admin.com",
+    "password": "12345678"
+}
