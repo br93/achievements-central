@@ -15,6 +15,18 @@ import (
 
 type NoContent struct{}
 
+const (
+	errFormat          = "%s: %v"
+	errJSON            = "Error parsing JSON"
+	errParams          = "Error parsing parameters"
+	errEmail           = "Email invalid"
+	errEmailOrPassword = "Email or password invalid"
+	errCreate          = "Error creating user"
+	errUpdate          = "Error updating user"
+	errGet             = "Error getting user"
+	errDelete          = "Error deleting user"
+)
+
 func (app *Config) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	validation := &data.Validation{}
@@ -29,20 +41,20 @@ func (app *Config) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&body)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errJSON, err))
 		return
 	}
 
 	err = validation.ValidateEmail(body.Email)
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Email invalid: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmail, err))
 		return
 	}
 
 	password, err := app.Models.User.Password.Set(body.Password)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error creating user: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errCreate, err))
 		return
 	}
 
@@ -52,7 +64,7 @@ func (app *Config) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error creating user: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errCreate, err))
 		return
 	}
 
@@ -64,21 +76,21 @@ func (app *Config) handlerGetUserById(w http.ResponseWriter, r *http.Request) {
 	paths, err := app.paramParser(w, r)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errJSON, err))
 		return
 	}
 
 	uuid, err := uuid.Parse(paths[len(paths)-1])
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errJSON, err))
 		return
 	}
 
 	user, err := app.DB.GetUserById(r.Context(), uuid)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error getting user by id: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errGet+" by id", err))
 		return
 	}
 
@@ -90,7 +102,7 @@ func (app *Config) handlerGetUserByEmail(w http.ResponseWriter, r *http.Request)
 	paths, err := app.paramParser(w, r)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
@@ -99,7 +111,7 @@ func (app *Config) handlerGetUserByEmail(w http.ResponseWriter, r *http.Request)
 	user, err := app.DB.GetUserByEmail(r.Context(), email)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error getting user by email: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errGet+" by email", err))
 		return
 	}
 
@@ -111,7 +123,7 @@ func (app *Config) handlerGetAllUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := app.DB.GetAllUsers(r.Context())
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error getting all users: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errGet+" all", err))
 		return
 	}
 
@@ -123,7 +135,7 @@ func (app *Config) handlerGetAllActiveUsers(w http.ResponseWriter, r *http.Reque
 	users, err := app.DB.GetAllActiveUsers(r.Context())
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error getting all active users: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errGet+" all active", err))
 		return
 	}
 
@@ -134,20 +146,20 @@ func (app *Config) handlerDeleteUser(w http.ResponseWriter, r *http.Request) {
 	paths, err := app.paramParser(w, r)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
 	uuid, err := uuid.Parse(paths[len(paths)-1])
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
 	err = app.DB.DeleteUser(r.Context(), uuid)
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error deleting user: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errDelete, err))
 		return
 	}
 
@@ -166,21 +178,21 @@ func (app *Config) handlerUpdateEmail(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&body)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errJSON, err))
 		return
 	}
 
 	paths, err := app.paramParser(w, r)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
 	uuid, err := uuid.Parse(paths[len(paths)-2])
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
@@ -188,7 +200,7 @@ func (app *Config) handlerUpdateEmail(w http.ResponseWriter, r *http.Request) {
 
 	match, _ := app.Models.User.Password.Matches(body.Password, user.Password)
 	if !match {
-		errorJSON(w, 400, fmt.Sprintf("Email or password invalid"))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmailOrPassword, nil))
 		return
 	}
 
@@ -198,7 +210,7 @@ func (app *Config) handlerUpdateEmail(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error updating user: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errUpdate, err))
 		return
 	}
 
@@ -217,21 +229,21 @@ func (app *Config) handlerUpdatePassword(w http.ResponseWriter, r *http.Request)
 	err := decoder.Decode(&body)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errJSON, err))
 		return
 	}
 
 	paths, err := app.paramParser(w, r)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
 	uuid, err := uuid.Parse(paths[len(paths)-2])
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
@@ -239,14 +251,14 @@ func (app *Config) handlerUpdatePassword(w http.ResponseWriter, r *http.Request)
 
 	match, _ := app.Models.User.Password.Matches(body.OldPassword, user.Password)
 	if !match {
-		errorJSON(w, 400, fmt.Sprintf("Email or password invalid"))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmailOrPassword, nil))
 		return
 	}
 
 	password, err := app.Models.User.Password.Set(body.NewPassword)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Email or password invalid"))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmailOrPassword, nil))
 		return
 	}
 
@@ -256,7 +268,7 @@ func (app *Config) handlerUpdatePassword(w http.ResponseWriter, r *http.Request)
 	})
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error updating user: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errUpdate, err))
 		return
 	}
 
@@ -267,14 +279,14 @@ func (app *Config) handlerUpdateSuperUser(w http.ResponseWriter, r *http.Request
 	paths, err := app.paramParser(w, r)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
 	uuid, err := uuid.Parse(paths[len(paths)-2])
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
@@ -284,7 +296,7 @@ func (app *Config) handlerUpdateSuperUser(w http.ResponseWriter, r *http.Request
 	})
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error updating user: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errUpdate, err))
 		return
 	}
 
@@ -295,14 +307,14 @@ func (app *Config) handlerUpdateActive(w http.ResponseWriter, r *http.Request) {
 	paths, err := app.paramParser(w, r)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
 	uuid, err := uuid.Parse(paths[len(paths)-2])
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error parsing parameters: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errParams, err))
 		return
 	}
 
@@ -312,7 +324,7 @@ func (app *Config) handlerUpdateActive(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf("Error updating user: %v", err))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errUpdate, err))
 		return
 	}
 
