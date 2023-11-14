@@ -46,10 +46,12 @@ func (app *Config) privateRoutes(router *chi.Mux) {
 	router.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(app.Token))
 		r.Use(jwtauth.Authenticator)
+		r.Use(app.UserContext)
 
 		r.Get("/users", app.handlerGetAllUsers)
 		r.Get("/users/{id}", app.handlerGetUserById)
 		r.Get("/users/active", app.handlerGetAllActiveUsers)
+		r.Get("/users/user", app.handleGetUser)
 
 		r.Put("/users/{id}/email", app.handlerUpdateEmail)
 		r.Put("/users/{id}/password", app.handlerUpdatePassword)

@@ -104,6 +104,17 @@ func (app *Config) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	responseJSON(w, 201, app.Models.ToUser(user))
 }
 
+func (app *Config) handleGetUser(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user")
+
+	if user == nil {
+		errorJSON(w, 401, fmt.Sprintf("Unauthorized"))
+		return
+	}
+
+	responseJSON(w, 200, user)
+}
+
 func (app *Config) handlerGetUserById(w http.ResponseWriter, r *http.Request) {
 
 	paths, err := app.paramParser(w, r)
@@ -153,6 +164,8 @@ func (app *Config) handlerGetUserByEmail(w http.ResponseWriter, r *http.Request)
 
 func (app *Config) handlerGetAllUsers(w http.ResponseWriter, r *http.Request) {
 
+	u := r.Context().Value("user").(data.User)
+	fmt.Println(u)
 	users, err := app.DB.GetAllUsers(r.Context())
 
 	if err != nil {
