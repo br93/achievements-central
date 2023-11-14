@@ -26,7 +26,6 @@ type password struct{}
 type LoggedUser struct {
 	Email    string    `json:"email"`
 	LoggedAt time.Time `json:"logged_at"`
-	Token    string    `json:"token"`
 }
 
 func (*Models) ToUser(tbUser database.TbUser) User {
