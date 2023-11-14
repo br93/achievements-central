@@ -17,27 +17,60 @@ type NoContent struct{}
 
 const (
 	errFormat          = "%s: %v"
-	errJSON            = "Error parsing JSON"
-	errParams          = "Error parsing parameters"
-	errEmail           = "Email invalid"
-	errEmailOrPassword = "Email or password invalid"
-	errCreate          = "Error creating user"
-	errUpdate          = "Error updating user"
-	errGet             = "Error getting user"
-	errDelete          = "Error deleting user"
+	errJSON            = "Error parsing JSON "
+	errParams          = "Error parsing parameters "
+	errEmail           = "Email invalid "
+	errEmailOrPassword = "Email or password invalid "
+	errCreate          = "Error creating user "
+	errUpdate          = "Error updating user "
+	errGet             = "Error getting user "
+	errDelete          = "Error deleting user "
 )
+
+type LoginBody struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (app *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
+
+	decoder := json.NewDecoder(r.Body)
+	body := LoginBody{}
+	err := decoder.Decode(&body)
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errJSON, err))
+		return
+	}
+
+	user, err := app.DB.GetUserByEmail(r.Context(), body.Email)
+
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmailOrPassword, err))
+		return
+	}
+
+	match, _ := app.Models.User.Password.Matches(body.Password, user.Password)
+	if !match {
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmailOrPassword, nil))
+		return
+	}
+
+	token, err := app.GenerateToken(user.Email)
+	if err != nil {
+		errorJSON(w, 400, fmt.Sprintf(errFormat, "failed to create token ", err))
+	}
+
+	w.Header().Add("Authorization", "Bearer "+token)
+	responseJSON(w, 200, app.Models.ToLoggedUser(user))
+}
 
 func (app *Config) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	validation := &data.Validation{}
 
-	type Body struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-
 	decoder := json.NewDecoder(r.Body)
-	body := Body{}
+	body := LoginBody{}
 	err := decoder.Decode(&body)
 
 	if err != nil {

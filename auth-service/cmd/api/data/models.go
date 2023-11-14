@@ -23,11 +23,24 @@ type User struct {
 
 type password struct{}
 
+type LoggedUser struct {
+	Email    string    `json:"email"`
+	LoggedAt time.Time `json:"logged_at"`
+	Token    string    `json:"token"`
+}
+
 func (*Models) ToUser(tbUser database.TbUser) User {
 	return User{
 		ID:        tbUser.ID,
 		Email:     tbUser.Email,
 		CreatedAt: tbUser.CreatedAt,
+	}
+}
+
+func (*Models) ToLoggedUser(tbUser database.TbUser) LoggedUser {
+	return LoggedUser{
+		Email:    tbUser.Email,
+		LoggedAt: time.Now(),
 	}
 }
 

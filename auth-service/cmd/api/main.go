@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -16,6 +17,7 @@ import (
 type Config struct {
 	DB     *database.Queries
 	Models data.Models
+	Token  *jwtauth.JWTAuth
 }
 
 func main() {
@@ -29,7 +31,8 @@ func main() {
 	}
 
 	app := Config{
-		DB: database.New(conn),
+		DB:    database.New(conn),
+		Token: jwtauth.New("HS256", []byte("secret"), nil),
 	}
 
 	server := &http.Server{
