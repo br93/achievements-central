@@ -18,14 +18,14 @@ func (app *Config) UserContext(next http.Handler) http.Handler {
 		}
 
 		email, _ := token.Get("user_email")
-		user, err := app.DB.GetUserByEmail(r.Context(), email.(string))
+		user, err := app.Service.GetByEmail(r.Context(), email.(string))
 
 		if err != nil {
 			ctx := context.WithValue(r.Context(), "user", nil)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 
-		ctx := context.WithValue(r.Context(), "user", app.Models.ToUser(user))
+		ctx := context.WithValue(r.Context(), "user", user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

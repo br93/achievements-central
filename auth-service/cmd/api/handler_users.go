@@ -25,6 +25,7 @@ const (
 	errUpdate          = "Error updating user "
 	errGet             = "Error getting user "
 	errDelete          = "Error deleting user "
+	errLogin           = "Error login "
 )
 
 type LoginBody struct {
@@ -43,16 +44,10 @@ func (app *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := app.DB.GetUserByEmail(r.Context(), body.Email)
+	user, err := app.Service.Login(r.Context(), body)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmailOrPassword, err))
-		return
-	}
-
-	match, _ := app.Models.User.Password.Matches(body.Password, user.Password)
-	if !match {
-		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmailOrPassword, nil))
+		errorJSON(w, 400, fmt.Sprintf(errFormat, errLogin, err))
 		return
 	}
 
@@ -62,7 +57,7 @@ func (app *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("Authorization", "Bearer "+token)
-	responseJSON(w, 200, app.Models.ToLoggedUser(user))
+	responseJSON(w, 200, user)
 }
 
 func (app *Config) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -84,14 +79,14 @@ func (app *Config) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	password, err := app.Models.User.Password.Set(body.Password)
+	password, err := app.Service.SetPassword(body.Password)
 
 	if err != nil {
 		errorJSON(w, 400, fmt.Sprintf(errFormat, errCreate, err))
 		return
 	}
 
-	user, err := app.DB.CreateUser(r.Context(), database.CreateUserParams{
+	user, err := app.Service.Create(r.Context(), database.CreateUserParams{
 		Email:    body.Email,
 		Password: password,
 	})
@@ -101,7 +96,7 @@ func (app *Config) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responseJSON(w, 201, app.Models.ToUser(user))
+	responseJSON(w, 201, user)
 }
 
 func (app *Config) handleGetUser(w http.ResponseWriter, r *http.Request) {
@@ -131,14 +126,14 @@ func (app *Config) handlerGetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := app.DB.GetUserById(r.Context(), uuid)
+	user, err := app.Service.GetById(r.Context(), uuid)
 
 	if err != nil {
 		errorJSON(w, 400, fmt.Sprintf(errFormat, errGet+" by id", err))
 		return
 	}
 
-	responseJSON(w, 200, app.Models.ToUser(user))
+	responseJSON(w, 200, user)
 }
 
 func (app *Config) handlerGetUserByEmail(w http.ResponseWriter, r *http.Request) {
@@ -152,40 +147,40 @@ func (app *Config) handlerGetUserByEmail(w http.ResponseWriter, r *http.Request)
 
 	email := paths[len(paths)-1]
 
-	user, err := app.DB.GetUserByEmail(r.Context(), email)
+	user, err := app.Service.GetByEmail(r.Context(), email)
 
 	if err != nil {
 		errorJSON(w, 400, fmt.Sprintf(errFormat, errGet+" by email", err))
 		return
 	}
 
-	responseJSON(w, 200, app.Models.ToUser(user))
+	responseJSON(w, 200, user)
 }
 
 func (app *Config) handlerGetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 	u := r.Context().Value("user").(data.User)
 	fmt.Println(u)
-	users, err := app.DB.GetAllUsers(r.Context())
+	users, err := app.Service.GetAll(r.Context())
 
 	if err != nil {
 		errorJSON(w, 400, fmt.Sprintf(errFormat, errGet+" all", err))
 		return
 	}
 
-	responseJSON(w, 200, app.Models.ToUsers(users))
+	responseJSON(w, 200, users)
 }
 
 func (app *Config) handlerGetAllActiveUsers(w http.ResponseWriter, r *http.Request) {
 
-	users, err := app.DB.GetAllActiveUsers(r.Context())
+	users, err := app.Service.GetAllActive(r.Context())
 
 	if err != nil {
 		errorJSON(w, 400, fmt.Sprintf(errFormat, errGet+" all active", err))
 		return
 	}
 
-	responseJSON(w, 200, app.Models.ToUsers(users))
+	responseJSON(w, 200, users)
 }
 
 func (app *Config) handlerDeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -203,7 +198,7 @@ func (app *Config) handlerDeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.DB.DeleteUser(r.Context(), uuid)
+	err = app.Service.Delete(r.Context(), uuid)
 	if err != nil {
 		errorJSON(w, 400, fmt.Sprintf(errFormat, errDelete, err))
 		return
@@ -242,15 +237,7 @@ func (app *Config) handlerUpdateEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := app.DB.GetUserById(r.Context(), uuid)
-
-	match, _ := app.Models.User.Password.Matches(body.Password, user.Password)
-	if !match {
-		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmailOrPassword, nil))
-		return
-	}
-
-	err = app.DB.UpdateEmail(r.Context(), database.UpdateEmailParams{
+	err = app.Service.UpdateEmail(r.Context(), body.Password, database.UpdateEmailParams{
 		Email: body.NewEmail,
 		ID:    uuid,
 	})
@@ -293,23 +280,8 @@ func (app *Config) handlerUpdatePassword(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	user, err := app.DB.GetUserById(r.Context(), uuid)
-
-	match, _ := app.Models.User.Password.Matches(body.OldPassword, user.Password)
-	if !match {
-		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmailOrPassword, nil))
-		return
-	}
-
-	password, err := app.Models.User.Password.Set(body.NewPassword)
-
-	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf(errFormat, errEmailOrPassword, nil))
-		return
-	}
-
-	err = app.DB.UpdatePassword(r.Context(), database.UpdatePasswordParams{
-		Password: password,
+	err = app.Service.UpdatePassword(r.Context(), body.OldPassword, database.UpdatePasswordParams{
+		Password: body.NewPassword,
 		ID:       uuid,
 	})
 
@@ -336,7 +308,7 @@ func (app *Config) handlerUpdateSuperUser(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err = app.DB.UpdateSuperUser(r.Context(), database.UpdateSuperUserParams{
+	err = app.Service.UpdateSuperUser(r.Context(), database.UpdateSuperUserParams{
 		IsSuperuser: sql.NullBool{Bool: true, Valid: true},
 		ID:          uuid,
 	})
@@ -364,7 +336,7 @@ func (app *Config) handlerUpdateActive(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.DB.UpdateActive(r.Context(), database.UpdateActiveParams{
+	err = app.Service.UpdateActiveUser(r.Context(), database.UpdateActiveParams{
 		IsActive: sql.NullBool{Bool: true, Valid: true},
 		ID:       uuid,
 	})

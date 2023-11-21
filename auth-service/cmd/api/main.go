@@ -1,7 +1,6 @@
 package main
 
 import (
-	data "auth-service/cmd/api/data"
 	"auth-service/internal/database"
 	"database/sql"
 	"fmt"
@@ -15,9 +14,8 @@ import (
 )
 
 type Config struct {
-	DB     *database.Queries
-	Models data.Models
-	Token  *jwtauth.JWTAuth
+	Service *Service
+	Token   *jwtauth.JWTAuth
 }
 
 func main() {
@@ -31,8 +29,8 @@ func main() {
 	}
 
 	app := Config{
-		DB:    database.New(conn),
-		Token: jwtauth.New("HS256", []byte("secret"), nil),
+		Service: NewService(database.New(conn)),
+		Token:   jwtauth.New("HS256", []byte("secret"), nil),
 	}
 
 	server := &http.Server{

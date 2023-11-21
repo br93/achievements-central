@@ -2,26 +2,21 @@ package data
 
 import (
 	"auth-service/internal/database"
-	"log"
 	"time"
 
-	"github.com/alexedwards/argon2id"
 	"github.com/google/uuid"
 )
 
 type Models struct {
-	User     User
-	password password
+	User User
 }
 
 type User struct {
 	ID        uuid.UUID `json:"user_id"`
 	Email     string    `json:"email"`
-	Password  password  `json:"-"`
+	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
 }
-
-type password struct{}
 
 type LoggedUser struct {
 	Email    string    `json:"email"`
@@ -51,22 +46,4 @@ func (model *Models) ToUsers(tbUsers []database.TbUser) []User {
 	}
 
 	return users
-}
-
-func (*password) Set(password string) (string, error) {
-	hash, err := argon2id.CreateHash(password, argon2id.DefaultParams)
-	if err != nil {
-		return "", err
-	}
-
-	return hash, nil
-}
-
-func (*password) Matches(plainText string, password string) (bool, error) {
-	match, err := argon2id.ComparePasswordAndHash(plainText, password)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return match, nil
 }
