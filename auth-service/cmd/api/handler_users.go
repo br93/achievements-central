@@ -56,7 +56,7 @@ func (app *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		errorJSON(w, 400, fmt.Sprintf(errFormat, "failed to create token ", err))
 	}
 
-	w.Header().Add("Authorization", "Bearer "+token)
+	app.setCookie(w, "jwt", token, 3600, false, true)
 	responseJSON(w, 200, user)
 }
 

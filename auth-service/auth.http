@@ -23,4 +23,3 @@ content-type: application/json
 ### GET USER
 GET http://localhost:8000/api/v1/users/user
 content-type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2VtYWlsIjoiYWRtaW5AYWRtaW4uY29tIn0.DvNzXAiXjRAW-keBe4yumdN9o2QPg4d2dYE7uZzg0J8
