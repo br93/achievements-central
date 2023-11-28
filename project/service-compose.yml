@@ -2,17 +2,20 @@ version: '3'
 
 services:
 
-  broker-service:
+  auth-service:
     build:
-      context: ./../broker-service
-      dockerfile: ./../broker-service/broker-service.Dockerfile
-    container_name: achievements-central-broker
+      context: ./../auth-service
+      dockerfile: ./../auth-service/auth-service.Dockerfile
+    container_name: achievements-central-auth
     restart: always
     ports:
-      - "8081:8080"
+      - "8080:8080"
     deploy:
       mode: replicated
       replicas: 1
+    environment:
+      PORT: 8080
+      DB_URL: postgres://postgres:root@achievements-central-db:5432/achievements-central?sslmode=disable
     networks:
       - achievements-central-network
 

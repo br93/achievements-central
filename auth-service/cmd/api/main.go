@@ -48,7 +48,7 @@ func main() {
 }
 
 func loadEnv() []string {
-	godotenv.Load(".env")
+	godotenv.Load()
 	port := os.Getenv("PORT")
 	dbURL := os.Getenv("DB_URL")
 
