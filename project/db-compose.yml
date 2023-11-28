@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+
+  db:
+    image: postgres:alpine
+    container_name: achievements-central-db
+    restart: always
+    ports: [54320:5432] 
+    volumes:
+      - achievements-central-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: achievements_central
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - achievements-central-network
+
+  migrate:
+    image: migrate/migrate:v4.16.2
+    profiles: ["tools"]
+    volumes:
+      - ./db/migrations:/migrations
+    entrypoint:
+      [
+        "migrate",
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://postgres:root@achievements-central-db:5432/achievements_central?sslmode=disable",
+      ]
+    command: ["up"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - achievements-central-network
+
+volumes:
+  achievements-central-db-data:
+    name: achievements-central-db-data
+
+networks:
+  achievements-central-network:
+    external: true
