@@ -1,8 +1,4 @@
-up: build_network
-	@echo "Starting db compose..."
-	docker-compose -f ./project/db-compose.yml up -d
-	@echo "Migrating db..."
-	docker-compose -f ./project/db-compose.yml --profile tools run --rm migrate up
+up: build_network up_db
 	@echo "Starting service compose..."
 	docker-compose -f ./project/service-compose.yml up -d
 	@echo "Done"
@@ -11,6 +7,12 @@ up_build: down build_auth
 	@echo "Building and starting..."
 	docker-compose -f ./project/service-compose.yml up --build -d
 	@echo "Done"
+
+up_db:
+	@echo "Starting db compose..."
+	docker-compose -f ./project/db-compose.yml up -d
+	@echo "Migrating db..."
+	docker-compose -f ./project/db-compose.yml --profile tools run --rm migrate up
 
 down:
 	@echo "Stopping compose..."
@@ -32,3 +34,5 @@ build_clean:
 	@echo "Cleaning untag images..."
 	docker rmi `docker images | grep "<none>" | awk {'print $3'}`
 	@echo "Done"
+
+all: down up_build up

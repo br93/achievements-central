@@ -1,0 +1,55 @@
+{
+  "$schema": "https://www.krakend.io/schema/krakend.json",
+  "version": 3,
+  "name": "achievements-central-microservices",
+  "timeout": "3000ms",
+  "cache_ttl": "300s",
+  "output_encoding": "json",
+  "port": 8000,
+  "debug_endpoint": true,
+  "echo_endpoint": true,
+  "endpoints": [
+    {
+      "endpoint": "/auth/health",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/health",
+          "method": "GET",
+          "host": [
+            "http://achievements-central-auth:8080"
+          ]
+        }
+      ]
+    },
+    {
+      "endpoint": "/auth/signup",
+      "input_headers": [
+        "Cookie"
+      ],
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users",
+          "method": "POST",
+          "host": [
+            "http://achievements-central-auth:8080"
+          ]
+        }
+      ]
+    },
+    {
+      "endpoint": "/auth/login",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/login",
+          "method": "POST",
+          "host": [
+            "http://achievements-central-auth:8080"
+          ]
+        }
+      ]
+    }
+  ]
+}

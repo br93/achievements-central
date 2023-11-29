@@ -15,7 +15,19 @@ services:
       replicas: 1
     environment:
       PORT: 8080
-      DB_URL: postgres://postgres:root@achievements-central-db:5432/achievements-central?sslmode=disable
+      DB_URL: postgres://postgres:root@achievements-central-db:5432/achievements_central?sslmode=disable
+    networks:
+      - achievements-central-network
+
+  api-gateway:
+    image: devopsfaith/krakend:2.5-watch
+    container_name: achievement-central-api-gateway
+    volumes: 
+      - ../api-gateway:/etc/krakend
+    entrypoint: ["krakend", "run", "-c", "krakend.json"]
+    ports:
+      - "5000:5000"
+      - "8000:8000"
     networks:
       - achievements-central-network
 
