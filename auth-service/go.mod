@@ -1,6 +1,6 @@
 module auth-service
 
-go 1.21.0
+go 1.21.4
 
 require (
 	github.com/alexedwards/argon2id v1.0.0
