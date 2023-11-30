@@ -13,8 +13,8 @@ require (
 )
 
 require (
-	github.com/lestrrat-go/backoff/v2 v2.0.7 // indirect
-	github.com/lestrrat-go/jwx v1.1.0 // indirect
+	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
+	github.com/lestrrat-go/jwx v1.2.26 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 )
 
