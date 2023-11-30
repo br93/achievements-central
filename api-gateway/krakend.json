@@ -4,7 +4,6 @@
   "name": "achievements-central-microservices",
   "timeout": "3000ms",
   "cache_ttl": "300s",
-  "output_encoding": "json",
   "port": 8000,
   "debug_endpoint": true,
   "echo_endpoint": true,
@@ -24,9 +23,6 @@
     },
     {
       "endpoint": "/auth/signup",
-      "input_headers": [
-        "Cookie"
-      ],
       "method": "POST",
       "backend": [
         {
@@ -40,11 +36,29 @@
     },
     {
       "endpoint": "/auth/login",
+      "output_encoding": "no-op",
       "method": "POST",
       "backend": [
         {
+          "encoding": "no-op",
           "url_pattern": "/api/v1/login",
           "method": "POST",
+          "host": [
+            "http://achievements-central-auth:8080"
+          ]
+        }
+      ]
+    },
+    {
+      "endpoint": "/auth/user",
+      "input_headers": [
+        "Cookie"
+      ],
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/api/v1/users/user",
+          "method": "GET",
           "host": [
             "http://achievements-central-auth:8080"
           ]
