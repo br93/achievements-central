@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var passwordError = "password doesn't match: %w"
+var passwordError = "password doesn't match"
 
 type Service struct {
 	model      data.Models
@@ -42,15 +42,6 @@ func (s *Service) Login(ctx context.Context, params LoginBody) (*data.LoggedUser
 }
 
 func (s *Service) Create(ctx context.Context, params database.CreateUserParams) (*data.User, error) {
-
-	password, err := s.SetPassword(params.Password)
-
-	if err != nil {
-		return nil, fmt.Errorf("password invalid: %w", err)
-	}
-
-	params.Password = password
-
 	response, err := s.repository.CreateUser(ctx, params)
 
 	if err != nil {

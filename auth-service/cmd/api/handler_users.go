@@ -17,15 +17,15 @@ type NoContent struct{}
 
 const (
 	errFormat          = "%s: %v"
-	errJSON            = "Error parsing JSON "
-	errParams          = "Error parsing parameters "
-	errEmail           = "Email invalid "
-	errEmailOrPassword = "Email or password invalid "
-	errCreate          = "Error creating user "
-	errUpdate          = "Error updating user "
-	errGet             = "Error getting user "
-	errDelete          = "Error deleting user "
-	errLogin           = "Error login "
+	errJSON            = "error parsing JSON "
+	errParams          = "error parsing parameters "
+	errEmail           = "email invalid "
+	errEmailOrPassword = "email or password invalid "
+	errCreate          = "error creating user "
+	errUpdate          = "error updating user "
+	errGet             = "error getting user "
+	errDelete          = "error deleting user "
+	errLogin           = "error login "
 )
 
 type LoginBody struct {
@@ -47,7 +47,7 @@ func (app *Config) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	user, err := app.Service.Login(r.Context(), body)
 
 	if err != nil {
-		errorJSON(w, 400, fmt.Sprintf(errFormat, errLogin, err))
+		errorJSON(w, 400, fmt.Sprintf(errEmailOrPassword))
 		return
 	}
 
